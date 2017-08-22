@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="__PUBLIC__/layui/css/layui.css">
+    <link rel="stylesheet" href="__PUBLIC__/css/main.css">
+    <link rel="stylesheet" href="__PUBLIC__/css/datatable.css">
+
+    <title>怎么肥四？</title>
+</head>
+<style>
+    .dataTables_filter{display: none;}
+</style>
+<body>
+    <div class="DeadLink">
+        <form class="layui-form layui-form-pane" id="DeadForm" action='{:U("Deadlink/startDead")}'>
+            <blockquote class="layui-elem-quote">死链检测</blockquote>
+            <hr>
+            <div class="layui-form-item" style="margin-bottom: 0;">
+                <label class="layui-form-label" for="type">协议选择</label>
+                <div class="layui-input-inline layui-d-type">
+                    <select name="type" id="type">
+                        <option value="http://">http</option>
+                        <option value="https://">https</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline layui-d-text">
+                    <input type="text" name="link" required  lay-verify="required" placeholder="入口链接" class="layui-input">
+                </div>
+                <div class="layui-d-button">
+                    <button class="layui-btn" lay-submit=""  lay-filter="Dead">biubiu</button>
+                </div>
+            </div>
+        </form>
+        <hr>
+        <table class="table-box" data-type="info" data-src='{:U("Deadlink/infoLink")}'></table>
+    </div>
+    <script src="__PUBLIC__/js/jquery-1.8.0.min.js"></script>
+    <script src="__PUBLIC__/layui/layui.js"></script>
+    <script src="__PUBLIC__/js/DeadLink.js"></script>
+</body>
+</html>

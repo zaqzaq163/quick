@@ -1,0 +1,191 @@
+.kwdCondition,.DeadLink{
+    padding:8px;
+}
+.DeadLink .layui-d-type{
+    width:80px;
+    margin-right: 0;
+}
+.DeadLink .layui-d-text{
+    margin-right: 0;
+    width:calc(100% - 260px);
+}
+.DeadLink .layui-form-item{
+    position: relative;
+}
+.DeadLink .layui-d-button{
+    position: absolute;
+    right:0;
+    top:0;
+    z-index: 2;
+}
+.table-box{
+    display: none;
+}
+.DeadLink .dataTables_paginate{
+    display: none;
+}
+#kwdList .layui-table{
+    margin-top: 0;
+}
+.kwdCondition label{
+    line-height:25px;
+}
+.kwdCondition .layui-btn[lay-filter="search"]{
+    float: right;
+}
+.tips{
+    display: inline-block;
+    color:#FF5722;
+}
+.tips.success{
+    color:#5FB878;
+}
+.tips.link{
+    color:#01AAED;
+    cursor: pointer;
+}
+.kwdCondition .tips{
+    float: right;
+}
+.kwdCondition .layui-w-a{
+    position: relative;
+}
+.kwdCondition div.tagsinput span.tag{
+    padding: 0;
+    background-color: #5FB878;
+    border:1px solid #5FB878;;
+    color:#fff;
+    position: relative;
+    height: 30px;
+    line-height: 28px;
+    padding-right: 30px;
+    cursor: pointer;
+    font-size: 0;
+    border-radius: 2px;
+    -webkit-transition: .1s linear;
+    transition: .1s linear;
+    box-sizing: border-box!important;
+    margin-right:8px;
+    margin-bottom:5px;
+}
+.kwdCondition div.tagsinput span.tag a{
+    position: absolute;
+    width: 30px;
+    right:0;
+    background-color: #fff;
+    font-size: 20px;
+    text-align: center;
+    color:#5fb878
+}
+.kwdCondition div.tagsinput span.tag a:hover{
+    color:#FF5722;
+}
+.kwdCondition div.tagsinput span.tag *{
+    display: inline-block;
+    vertical-align: middle;
+}
+.kwdCondition div.tagsinput span.tag span{
+    vertical-align: middle;
+    padding: 0 10px;
+    height: 100%;
+    font-size: 14px;
+    background-color: #5FB878;
+    color: #fff;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.kwdCondition div .tagsinput{
+    border:1px solid #e6e6e6;
+}
+
+
+
+#kwdList .layui-tab{
+    margin-top:0;
+}
+#kwdList .layui-tab .layui-tab-title{
+    height:44px;
+    position: fixed;
+    background-color: #fff;
+    width: 100%;
+    top: 0;
+    z-index:1;
+}
+#kwdList .export{
+    position: fixed;
+    top:3px;
+    right:8px;
+}
+#kwdList .layui-tab .layui-tab-title li{
+    line-height:44px;
+}
+#kwdList .layui-tab .layui-tab-title .layui-this:after{
+    height:45px;
+}
+#kwdList .layui-tab .layui-tab-content{
+    margin-top:45px;
+}
+
+.layui-kwd-pro{
+    width:100%;
+    z-index: 99999999;
+    position: fixed;
+    bottom:0;
+    left:0;
+}
+.layui-kwd-pro .layui-progress-text{
+    color:#fff;
+}
+.dataTables_filter{display: none;}
+
+
+.getIp{
+    padding:8px;
+}
+.fr{
+    float: right;
+}
+.export-btn{
+    display: none;
+}
+.hidden{
+    padding: 8px;
+}
+.hidden .layui-form-item{
+    margin-bottom:0;
+}
+
+#export{
+    float: right;
+    margin-top:-7px;
+}
+#kwdList .cd{
+    font-size:14px;
+    font-weight: bold;
+    height:50px;
+    text-align: center;
+    color:#FF5722;
+}
+.layui-table-header .layui-table {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+.layui-table .layui-table-cell{
+    height:32px;
+    line-height: 32px;
+}
+.layui-table-view{
+    margin-top:0;
+}
+.layui-table.repeatTable thead tr{
+    background-color: transparent;
+}
+.layui-table.repeatTable{
+    text-align: center;
+    line-height:32px;
+    background-color: transparent;
+}
+.layui-table.repeatTable tbody tr:hover{
+    color:#000;
+}

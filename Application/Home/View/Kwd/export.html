@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>php是世界上最好的语言</title>
+    <link rel="stylesheet" href="__PUBLIC__/layui/css/layui.css">
+    <link rel="stylesheet" href="__PUBLIC__/css/main.css">
+</head>
+<body>
+<div id="kwdList">
+    <div class="layui-tab layui-tab-brief">
+        <ul class="layui-tab-title">
+            <volist name="arr" id="vo"  >
+                <li class="<eq name='i' value='1'>layui-this</eq>">{$key}</li>
+            </volist>
+        </ul>
+
+        <a href="{:U('Home/Export/keyword')}?id={:I('get.id')}"><button class="layui-btn export">导出</button></a>
+        <div class="layui-tab-content">
+            <volist name="arr" id="vo" key="i" >
+                <div class="layui-tab-item <eq name='i' value='1'>layui-show</eq>">
+
+                        <div class="layui-field-box">
+                            <table class="layui-table">
+                                <colgroup>
+                                    <col width="70">
+                                    <col>
+                                    <col width="120">
+                                    <col width="120">
+                                </colgroup>
+                                <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>关键词(点击查看详情)</th>
+                                    <th>首页排名个数</th>
+                                    <th>排名情况</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <volist name="vo" id="vv">
+                                    <tr><td colspan="4" class="cd">{$Think.lang.$key}</td></tr>
+                                    <volist name="vv" id="v" key="key" >
+                                        <tr>
+                                            <td>{$key}</td>
+                                            <td class="info" style="cursor: pointer" data-id="{$v.id}">{$v[word]}</td>
+                                            <td>{$v[ranknum]}</td>
+                                            <td>{$v[rankcondition]}</td>
+                                        </tr>
+                                    </volist>
+
+                                </volist>
+
+                                </tbody>
+                            </table>
+                        </div>
+                </div>
+            </volist>
+        </div>
+    </div>
+</div>
+
+<script src="__PUBLIC__/js/jquery-1.8.0.min.js"></script>
+<script src="__PUBLIC__/layui/layui.js"></script>
+<script>
+    layui.use(['element','layer'],function(){
+        var element = layui.element,layer = layui.layer;
+        $('.info').on('click',function(){
+            var _this = $(this);
+            layer.open({
+                area:['1160px','80%'],
+                type: 2,
+                anim: 2,
+                shadeClose: true, //开启遮罩关闭
+                content: "{:U('Home/Outside/keywordView')}?id="+_this.data('id'),
+                title:"详细信息",
+                scrollbar:false
+            });
+        })
+    })
+</script>
+</body>
+</html>

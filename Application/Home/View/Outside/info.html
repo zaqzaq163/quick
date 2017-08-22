@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{$info['word']}的搜索结果</title>
+    <link rel="stylesheet" href="__PUBLIC__/layui/css/layui.css">
+    <link rel="stylesheet" href="__PUBLIC__/css/main.css">
+</head>
+<body>
+    <div class="layui-box layui-main">
+        <blockquote class="layui-elem-quote" style="margin-top: 10px">搜索引擎: <span class="tips">{$info['lycos']}</span>&nbsp;&nbsp;&nbsp;关键词: <span class="tips">{$info['word']}</span></blockquote>
+        <hr>
+        <table class="layui-table">
+            <colgroup>
+                <col width="10%">
+                <col>
+                <col width="15%">
+                <col width="15%">
+            </colgroup>
+            <thead>
+            <tr>
+                <th>序号</th>
+                <th>标题</th>
+                <th>匹配地址</th>
+                <th>平台</th>
+            </tr>
+            </thead>
+            <tbody>
+                <volist name="list" id="v">
+                    <tr style="<notempty name='v.mate_word'>color:#5FB878</notempty>">
+                        <td>{$v.id}</td>
+                        <td>{$v.title}</td>
+                        <td>{$v.mate_word}</td>
+                        <td><empty name="v['url']">未获取<else />{$v.url}</empty></td>
+                    </tr>
+                </volist>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

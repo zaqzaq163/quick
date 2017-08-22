@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>关键字覆盖查询</title>
+    <link rel="stylesheet" href="__PUBLIC__/layui/css/layui.css">
+    <link rel="stylesheet" href="__PUBLIC__/css/main.css">
+
+</head>
+<body>
+<div class="kwdCondition">
+    <input type="file" name="export" id="ExpBtn" class="export-btn">
+    <blockquote class="layui-elem-quote">
+        <span>关键词覆盖查询</span>
+        <button type="button" id="export" class="layui-btn" onclick="$('#ExpBtn').click()">上传</button>
+    </blockquote>
+    <hr>
+    <form data-src="{:U('Kwd/getSource')}" class="layui-form layui-form-pane">
+
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label" id="keyword" for="keyword">匹配条件&nbsp;<span class="tips">请使用&nbsp;&nbsp;[&nbsp;,&nbsp;]&nbsp;&nbsp;或&nbsp;&nbsp;[&nbsp;|&nbsp;]&nbsp;&nbsp;隔开</span></label>
+            <div class="layui-input-block">
+                <textarea name="keywords" required lay-verify="required" placeholder="请输入" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label" for="condition">匹配网址&nbsp;<span class="tips">请使用&nbsp;&nbsp;[&nbsp;,&nbsp;]&nbsp;&nbsp;或&nbsp;&nbsp;[&nbsp;|&nbsp;]&nbsp;&nbsp;隔开</span></label>
+            <div class="layui-input-block">
+                <textarea name="conditions" required id="condition" lay-verify="required" placeholder="请输入" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item" pane="" id="lycos">
+            <label class="layui-form-label">搜索引擎</label>
+            <div class="layui-input-block">
+                <input class="lycos" type="checkbox" data-type="1" title="百度">
+                <input class="lycos" type="checkbox" data-type="2" title="手机百度">
+                <input class="lycos" type="checkbox" data-type="3" title="搜狗">
+                <input class="lycos" type="checkbox" data-type="4" title="神马">
+                <input class="lycos" type="checkbox" data-type="5" title="360">
+            </div>
+        </div>
+        <button lay-submit  lay-filter="search"  class="layui-btn">查询</button>
+        <div class="hidden" style="display: none">
+            <div class="layui-form-item" pane="">
+                <label class="layui-form-label">搜索引擎</label>
+                <div class="layui-input-block">
+                    <input class="sheetLycos" type="checkbox" data-type="1" title="百度">
+                    <input class="sheetLycos" type="checkbox" data-type="2" title="手机百度">
+                    <input class="sheetLycos" type="checkbox" data-type="3" title="搜狗">
+                    <input class="sheetLycos" type="checkbox" data-type="4" title="神马">
+                    <input class="sheetLycos" type="checkbox" data-type="5" title="360">
+                </div>
+            </div>
+            <hr>
+            <div class="layui-form-item" pane="" >
+                <label class="layui-form-label">选择Sheet</label>
+                <div class="layui-input-block sheetBox">
+
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="layui-kwd-pro">
+    <div class="layui-progress" lay-filter="demo" lay-showPercent="true">
+        <div class="layui-progress-bar" lay-percent="0%"></div>
+    </div>
+</div>
+</body>
+<script src="__PUBLIC__/js/jquery-1.8.0.min.js"></script>
+<script src="__PUBLIC__/layui/layui.js"></script>
+<script src="__PUBLIC__/js/ajaxfileupload.js"></script>
+
+<script>
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    layui.use(['element','jquery','form','layer'], function(){
+        var layer = layui.layer , element = layui.element,form = layui.form;
+        var layTips;
+
+        //全局
+        var _data = {},step = 0,_ly = [],_t,_Total = 0,_sh = [],_cnm = 0,_ppid;
+
+        //导入所需
+        var sheetData,conData,conNum = 0;
+
+
+        var _Up = function(){
+            _t = 'export';
+            _ly = [];
+            _data = {};
+            _sh = [];
+            layTips = layer.msg('正在读取Excel,请稍候',{icon:16, time:0, shade:0.6});
+            $.ajaxFileUpload({
+                url: '{:U("Export/Upload")}', //用于文件上传的服务器端请求地址
+                fileElementId: 'ExpBtn', //文件上传域的ID
+                dataType: 'json', //返回值类型 一般设置为json
+                success: function (res)  //服务器成功响应处理函数
+                {
+                    $('#ExpBtn').change(function(){
+                        _Up();
+                    });
+                    layer.close(layTips);
+                    if(res.code === -2){
+                        layer.msg(res.msg)
+                    }else if(res.code === 200){
+                        _ppid = res.pid;
+                        _data = res.data;
+                        var html = '';
+                        $.each(res.data,function(x,y){
+                            html += '<input class="sheet" type="checkbox" data-type="'+x+'" title="'+y.title+'">'
+                        });
+                        $('.sheetBox').html(html);
+                        form.render('checkbox');
+                        layTips = layer.open({
+                            btn:['提交','取消'],
+                            yes:function(){
+                                var LycosChecked = $('.sheetLycos:checked');
+                                var sheetChecked = $('.sheet:checked');
+                                _Total = 0;
+                                if(!LycosChecked.length || !sheetChecked.length){
+                                    alert('两项必选');
+                                }else{
+                                    LycosChecked.each(function(){
+                                        _ly.push($(this).attr('data-type'))
+                                    });
+                                    sheetChecked.each(function(){
+                                        _sh.push($(this).attr('data-type'));
+                                        _Total += res.data[$(this).attr('data-type')].count
+                                    });
+                                    layer.close(layTips);
+                                    layTips = layer.msg('正在获取数据,请稍候',{icon:16, time:0, shade:0.6});
+                                    sheetFun(_sh.shift());
+                                }
+                            },
+                            area:['auto','auto'],
+                            type: 1,
+                            shade: 0.6,
+                            title: res.title, //不显示标题
+                            content: $('.hidden') //捕获的元素，注意：最好该指定的元素要存放在body最外层，否则可能被其它的相对元素所影响
+                        });
+                    }else{
+                        layer.msg('未知错误')
+                    }
+
+                }
+            });
+            return false;
+        };
+
+        function sheetFun(sheet){
+            conNum = 0;
+            sheetData = [];
+            if(!sheet){
+                layer.close(layTips);
+                window.open('{:U("Kwd/view")}'+'?id='+_ppid,'ContentBox')
+            }else{
+                $.each(_data[sheet].data,function(k,v){
+                    sheetData.push({'conditions':k,'keywords':v})
+                });
+                conFun(conNum)
+            }
+        }
+
+        function conFun(conNum){
+            //结束调用
+            if(conNum === sheetData.length){
+                sheetFun(_sh.shift())
+            }else{
+                step = 0;
+                conData = sheetData[conNum];
+                var post = {'type':_t,'pid':_ppid,'data':{'keywords':conData.keywords,'conditions':conData.conditions}};
+                $.post('{:U("Kwd/Condition")}',post,function(r){
+                    _data.keywords = r.data.keywords;
+                    _data.conditions = r.data.conditions;
+                    _data.pid = r.data.pid;
+                    FirstFunction(step,_t)
+                },'json');
+            }
+        }
+
+
+        form.on('submit(search)',function(data){
+            _ly = [];
+            _data = {};
+            step = 0 ;
+            _t = 'normal';
+            var Checked = $('.lycos:checked');
+            if(!Checked.length){
+                layer.msg('请选择搜索引擎');
+                return false;
+            }else{
+                Checked.each(function(){
+                    _ly.push($(this).attr('data-type'))
+                })
+            }
+            var post = {'type':_t,'data':{'keywords':data.field.keywords,'conditions':data.field.conditions}};
+            layTips = layer.msg('正在获取数据,请稍候',{icon:16, time:0, shade:0.6});
+            $.post('{:U("Kwd/Condition")}',post,function(r){
+                _data.keywords = r.data.keywords;
+                _Total = r.count;
+                _data.conditions = r.data.conditions;
+                _data.pid = r.data.pid;
+                _ppid = r.data.ppid;
+                FirstFunction(step,_t)
+            },'json');
+            return false;
+        });
+        function FirstFunction(step,_t){
+            _t = _t || 'normal';
+            var _Count = 0;
+            if(step === _data.keywords.length){
+                if(_t === 'normal'){
+                    window.open('{:U("Kwd/view")}'+'?id='+_ppid,'ContentBox')
+                }else{
+                    conFun(++conNum)
+                }
+                //总体运行完成
+            }else{
+                //获取IP
+                $.post('{:U("Kwd/getIp")}',function(e){
+                    //发送5个请求
+                    $.each(_ly,function(k,v){
+                        $.post('{:U("Kwd/getSource")}',{
+                            'lycos':v,
+                            'pid':_data.pid,
+                            'ip' : e.data,
+                            'keywords': _data['keywords'][step],
+                            'conditions': _data['conditions']
+                        },function(s){
+                            _cnm += _data['keywords'][step].length;
+                            _Count++;
+                            if(_Count === _ly.length){
+                                ++step;
+                                element.progress('demo', parseInt(_cnm / _Total /_ly.length * 100)+'%');
+                                return FirstFunction(step,_t);
+                                //收到5个请求, 进行递归
+                            }else{
+                                if(s.state!==200){
+                                    console.log(s.msg)
+                                }
+                            }
+                        })
+                    })
+                })
+            }
+        }
+
+        $('#ExpBtn').change(function(){
+            _Up();
+        });
+    })
+</script>
+</html>

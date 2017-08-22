@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>快道应用管理</title>
+    <link rel="stylesheet" href="__PUBLIC__/css/index.css">
+    <link rel="stylesheet" href="__PUBLIC__/layui/css/layui.css">
+</head>
+<body>
+<div id="wrap">
+    <div class="layui-layout layui-layout-admin">
+        <div class="layui-header header header-demo">
+            <div class="layui-main">
+                <ul class="layui-nav" lay-filter="">
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon" style="top: 3px;">&#xe612;</i><cite>{$Think.session.userID}</cite>
+                        </a>
+                        <dl class="layui-nav-child"> <!-- 二级菜单 -->
+                            <dd><a href="">修改密码</a></dd>
+                            <dd><a href="">退出登录</a></dd>
+                        </dl>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="layui-side layui-bg-black">
+            <div class="layui-side-scroll">
+
+                <ul class="layui-nav layui-nav-tree">
+                    <!-- 侧边导航: <ul class="layui-nav layui-nav-tree layui-nav-side"> -->
+                    <li class="layui-nav-item layui-nav-itemed">
+                        <a href="javascript:;">
+                            <i class="layui-icon" style="top: 3px;">&#xe631;</i><cite>应用</cite>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="{:U('Kwd/index')}" target="ContentBox">关键词覆盖查询</a></dd>
+                            <dd><a href="{:U('Deadlink/index')}" target="ContentBox">死链检测</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon" style="top: 3px;">&#xe637;</i><cite>历史</cite>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="{:U('Kwd/history')}" target="ContentBox">关键词覆盖查询</a></dd>
+                            <dd><a href="{:U('Deadlink/history')}" target="ContentBox">死链检测</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">
+                            <i class="layui-icon" style="top: 3px;">&#xe628;</i><cite>工具箱</cite>
+                        </a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" target="ContentBox">待开发</a></dd>
+                        </dl>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="layui-body">
+            <iframe frameborder="0" src="{:U('Kwd/index')}" name="ContentBox" class="ContentBox"></iframe>
+        </div>
+    </div>
+</div>
+
+</body>
+<script src="__PUBLIC__/js/jquery-1.8.0.min.js"></script>
+<script src="__PUBLIC__/layui/layui.js"></script>
+<script>
+    layui.use('element',function(){
+        var element = layui.element;
+    })
+</script>
+</html>
+
+

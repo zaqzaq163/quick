@@ -1,0 +1,46 @@
+.site-inline{font-size: 0;}
+.site-tree, .site-content{display: inline-block;  *display:inline; *zoom:1; vertical-align: top; font-size: 14px;}
+.site-tree{width: 220px; min-height: 900px; padding: 5px 0 20px;}
+.site-content{width: 899px; min-height: 900px; padding: 20px 0 10px 20px;}
+
+.header{height: 59px; border-bottom: 1px solid #404553;  background-color: #393D49;}
+.logo{position: absolute; left: 0; top: 16px;}
+.logo img{width: 82px; height: 31px;}
+
+.header .layui-nav{position: absolute; right: 0; top: 0; padding: 0; background: none;}
+.header .layui-nav .layui-nav-item{margin: 0 20px; }
+.header .layui-nav .layui-nav-item[mobile]{display: none;}
+
+
+.menu{position: absolute; right: 0; top: 0; line-height: 65px;}
+.menu a{display:inline-block; *display:inline; *zoom:1; vertical-align:top;}
+.menu a{position: relative; padding: 0 20px; margin: 0 20px; color: #c2c2c2; font-size: 14px;}
+.menu a:hover{color: #fff; transition: all .5s; -webkit-transition: all .5s}
+.menu a.this{color: #fff}
+.menu a.this::after{content: ''; position: absolute; left: 0; bottom: -1px; width: 100%; height: 5px; background-color: #5FB878;}
+
+.header-index{background-color: #0B011A; border: none;}
+
+
+/*.layui-layout-admin .header-demo{border-bottom-color: #009688; background-color: #fff;}*/
+.header-demo{height: 60px; border-bottom: none;}
+.header-demo .logo{left: 40px;}
+.header-demo .layui-nav{top: 0;}
+.header-demo .layui-nav .layui-nav-item{margin: 0 10px;}
+
+.header-demo .layui-nav .layui-this a{padding: 0 30px;}
+#wrap .layui-layout-admin .layui-body{
+    bottom:0;
+    overflow: hidden;
+}
+#wrap .layui-nav-tree .layui-nav-child a{
+    text-indent: 24px;
+}
+
+.layui-nav-item a cite{
+    padding:0 10px;
+}
+.ContentBox{
+    width:100%;
+    min-height: 100%;
+}
