@@ -1,55 +1,100 @@
 <?php
 
-function myCurl($url,$ip = false){
-    session_write_close();
+
+
+function Curl($url,$ip = false){
+    $return = ['code'=>0,'msg'=>''];
     $ch = curl_init();
-    if($ip){
-        $conf = $ip;
-        curl_setopt($ch, CURLOPT_PROXY, $conf['ip']);
-        switch($conf['type']){
-            case 'Socks4':    curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS4);break;
-            case 'Socks5':    curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);break;
-            case 'Socks4/Socks5':    curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);break;
-            default:curl_setopt($ch,CURLOPT_PROXYTYPE, CURLPROXY_HTTP);break;
-        }
-    }
     curl_setopt($ch,CURLOPT_URL,$url);
-    curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)');// 3. 执行并获取HTML文档内容
+    if($ip){
+        curl_setopt($ch,CURLOPT_PROXY, $ip);
+        curl_setopt($ch,CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+    }
+    curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36');
     curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
     curl_setopt($ch,CURLOPT_FOLLOWLOCATION,1); //重定向抓取
     curl_setopt($ch,CURLOPT_HEADER,0);
+    curl_setopt($ch,CURLOPT_TIMEOUT,60);
+    curl_setopt($ch,CURLOPT_HTTPHEADER, array('Accept-Encoding:gzip'));
+    curl_setopt($ch,CURLOPT_ENCODING, "gzip");
     curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,false);
     curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,false);
     $output = curl_exec($ch);
     $httpInfo = curl_getinfo($ch);
+
+
+
+    $return['info'] = $httpInfo;
+    if($err = curl_error($ch)){
+        $return['code'] = -404;
+        $return['msg'] = '错误信息为【'.$err.'】';
+        $return['state'] = curl_errno($ch);
+    }else if($httpInfo['http_code']==200){
+        $return['data']['cont'] = $output;
+    }else{
+        $return['code'] = -200;
+        $return['msg'] = '错误代码为【'.$httpInfo['http_code'].'】';
+        $return['state'] = $httpInfo['http_code'];
+    }
     curl_close($ch);
-    $return['state'] = $httpInfo['http_code'];
-    $return['url'] = $httpInfo['url'];
-    $return['cont'] = $output;
     return $return;
 }
 
 function getWait($lycos){
     switch ($lycos){
         case 1:$return = 100000;break;
-        case 2:$return = 1000;break;
-        case 4:$return = 1000;break;
+        case 2:$return = 10000;break;
+        case 3:$return = 500000;break;
+        case 4:$return = 100000;break;
+        case 5:$return = 500000;break;
         default:$return = 500000;
     }
     return $return;
 }
 
-function multiCurl($urls = array(),$field,$ip = false,$wait = 500000){
+function Curls($urls,$ip,$lycos){
+    $return = [];
 
-    session_write_close();
-    $return = ['code'=>200];
+    if(!$ip){
+        foreach($urls as $k=>$url){
+            $row = Curl($url,$ip);
+            if($row['code'] == 0){
+                $return[$k]['data']['cont'] = $row['data']['cont'];
+                $return[$k]['data']['info'] = $row['info'];
+            }else{
+                $return[$k]['error']['msg'] = $row['msg'];
+                $return[$k]['error']['type'] = $row['code'];
+                $return[$k]['error']['code'] = $row['state'];
+            }
+            usleep(getWait($lycos)*rand(8,13));
+        }
+    }else{
+        $list = multiCurl($urls,$ip,getWait($lycos));
+        foreach($list['data'] as $k=>$row){
+            if($row['code'] == 0){
+                $return[$k]['data']['cont'] = $row['data']['cont'];
+                $return[$k]['data']['info'] = $row['info'];
+            }else{
+                $return[$k]['error']['msg'] = $row['msg'];
+                $return[$k]['error']['type'] = $row['code'];
+                $return[$k]['error']['code'] = $row['state'];
+            }
+        }
+    }
+    return $return;
+}
+
+function multiCurl($urls,$ip = false,$wait = 0){
+    $return = ['code'=>0,'msg'=>''];
+    $handle = array();
+    $mh = curl_multi_init();
+    $active = null;
     foreach($urls as $k=>$url) {
         $ch = curl_init();
         curl_setopt($ch,CURLOPT_URL,$url);
-        if($ip != 'false'){
+        if($ip){
             curl_setopt($ch,CURLOPT_PROXY, $ip);
             curl_setopt($ch,CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-            curl_setopt($ch, CURLOPT_PROXYUSERPWD, "3igrkmx3bu:fo2gpnt9s3");
         }
         curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36');
         curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
@@ -60,91 +105,46 @@ function multiCurl($urls = array(),$field,$ip = false,$wait = 500000){
         curl_setopt($ch,CURLOPT_ENCODING, "gzip");
         curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,false);
         curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,false);
-        if(curl_error($ch)){
-            $return['error'][] = $k;
-            file_put_contents('d:/file_put/error'.rand().rand().".txt",curl_error($ch));
-        }
-        $content = curl_exec($ch);
-        $info = curl_getinfo($ch);
-        curl_close($ch);
-        foreach($field as $v){
-            if($v == 'cont'){
-                $return['data'][$k]['cont'] = $content;
-            }else{
-                $return['data'][$k][$v] = $info[$v];
-            }
-        }
-        usleep($wait*rand(1,5));
+        curl_multi_add_handle($mh, $ch);
+        $handle[$k] = $ch;
     }
-    if(empty($return['data'])){
-        $return['code'] = -2;
+
+    do {
+        $mrc = curl_multi_exec($mh, $active);
+        usleep($wait);
+    } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+
+    while ($active and $mrc == CURLM_OK) {
+        if(curl_multi_select($mh) === -1){
+            usleep(100);
+        }
+        do {
+            $mrc = curl_multi_exec($mh, $active);
+        } while ($mrc == CURLM_CALL_MULTI_PERFORM);
     }
+
+    foreach($handle as $i => $ch) {
+        $output = curl_multi_getcontent($ch);
+        $httpInfo = curl_getinfo($ch);
+        $return['data'][$i]['info'] = $httpInfo;
+        if($err = curl_error($ch)){
+            $return['data'][$i]['code'] = -404;
+            $return['data'][$i]['msg'] = '错误信息为【'.$err.'】';
+        }else if($httpInfo['http_code']==200){
+            $return['data'][$i]['code'] = 0;
+            $return['data'][$i]['data']['cont'] = $output;
+        }else{
+            $return['data'][$i]['code'] = -200;
+            $return['data'][$i]['msg'] = '错误代码为【'.$httpInfo['http_code'].'】';
+        }
+    }
+    foreach($handle as $ch) {
+        curl_multi_remove_handle($mh, $ch);
+    }
+    curl_multi_close($mh);
     return $return;
-
-    /* $handle = array();
-     $mh = curl_multi_init();
-     $active = null;
-     foreach($urls as $k=>$url) {
-         $ch = curl_init();
-         curl_setopt($ch,CURLOPT_URL,$url);
-         if($ip != 'false'){
-             curl_setopt($ch,CURLOPT_PROXY, $ip);
-             curl_setopt($ch,CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
-             curl_setopt($ch, CURLOPT_PROXYUSERPWD, "3igrkmx3bu:fo2gpnt9s3");
-         }
-         curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36');
-         curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-         curl_setopt($ch,CURLOPT_HEADER,0);
-         curl_setopt($ch,CURLOPT_TIMEOUT,60);
-         curl_setopt($ch,CURLOPT_HTTPHEADER, array('Accept-Encoding:gzip'));
-         curl_setopt($ch,CURLOPT_ENCODING, "gzip");
-         curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,false);
-         curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,false);
-         curl_multi_add_handle($mh, $ch);
-         $handle[$k] = $ch;
-     }
-
-     do {
-         usleep($wait*rand(1,8));
-         $mrc = curl_multi_exec($mh, $active);
-     } while ($mrc == CURLM_CALL_MULTI_PERFORM);
-
-     while ($active and $mrc == CURLM_OK) {
-
-         if(curl_multi_select($mh) === -1){
-             usleep(100);
-         }
-         do {
-             $mrc = curl_multi_exec($mh, $active);
-         } while ($mrc == CURLM_CALL_MULTI_PERFORM);
-
-     }
-
-     foreach($handle as $i => $ch) {
-         if(curl_error($ch)){
-             $data['error'][] = $i;
-             file_put_contents('d:/file_put/error'.rand().rand().".txt",curl_error($ch));
-         }
-         $content  = curl_multi_getcontent($ch);
-         $info = curl_getinfo($ch);
-         foreach($field as $k=>$v){
-             if($v == 'cont'){
-                 $data[$i]['cont'] = $content;
-             }else{
-                 $data[$i][$v] = $info[$v];
-             }
-         }
-     }
-     foreach($handle as $ch) {
-         curl_multi_remove_handle($mh, $ch);
-     }
-     curl_multi_close($mh);
-     return $data;*/
 }
-
 function testIp($ip){
-    session_write_close();
-
     $urls = [
         'https://www.baidu.com/s?wd=1',
         'https://m.baidu.com/s?word=1',
@@ -152,7 +152,6 @@ function testIp($ip){
         'http://so.m.sm.cn/s?q=1',
         'https://www.so.com/s?q=1'
     ];
-
     $handle = array();
     $mh = curl_multi_init();
     $return = ['code'=>200,'msg'=>null,'data'=>null];
@@ -190,8 +189,6 @@ function testIp($ip){
 
 
 function CoverCondition($condition){
-    session_write_close();
-
     $arr = explode(',',str_replace("\n", ',', str_replace('|',',',str_replace('，',',',$condition))));
     $result = [];
     foreach($arr as $k=>$v){
@@ -207,8 +204,6 @@ function CoverCondition($condition){
 }
 
 function getBaseDomain($url='',$host = false){
-    session_write_close();
-
     if(!$url){
         return $url;
     }
@@ -252,4 +247,28 @@ function getBaseDomain($url='',$host = false){
         #print_r(get_defined_vars());die;
     }
     return $res;
+}
+
+
+function sourceIp() {
+    if (getenv('HTTP_CLIENT_IP')) {
+        $ip = getenv('HTTP_CLIENT_IP');
+    }
+    elseif (getenv('HTTP_X_FORWARDED_FOR')) {
+        $ip = getenv('HTTP_X_FORWARDED_FOR');
+    }
+    elseif (getenv('HTTP_X_FORWARDED')) {
+        $ip = getenv('HTTP_X_FORWARDED');
+    }
+    elseif (getenv('HTTP_FORWARDED_FOR')) {
+        $ip = getenv('HTTP_FORWARDED_FOR');
+
+    }
+    elseif (getenv('HTTP_FORWARDED')) {
+        $ip = getenv('HTTP_FORWARDED');
+    }
+    else {
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+    return $ip;
 }

@@ -5,7 +5,7 @@ class CurlModel extends Model {
     public function _initialize(){
         session_write_close();
     }
-    public function OneCurl(){
+    public function OneCurl($url){
 
     }
     public function TwoCurl(){

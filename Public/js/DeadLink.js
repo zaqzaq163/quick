@@ -4,7 +4,7 @@ layui.use(['laytpl','form','table','layer'],function() {
         ,{field: 'title', title: '标题', width: 300}
         ,{field: 'url', title: '网址',width:300}
         ,{field: 'nofollow', title: 'nofollow', width: 120 , templet:"<div>{{d.nofollow == 1?'<span class='tips success'>有</span>':'<span class='tips'>无</span>'}}</div>"}
-        ,{field: 'state',title:'状态', width:150,sort:true , templet:"<div>{{d.state == 200?'<span class='tips success'><i class='layui-icon'>&#xe605;</i></span>':'<span class='tips'><i class=\"layui-icon\">&#x1006;</i></span>'}}</div>"}
+        ,{field: 'state',title:'状态', width:150,sort:true , templet:"<div>{{d.state == -1?'<span class='tips success'><i class='layui-icon'>&#xe605;</i></span>':'<span class='tips'><i class=\"layui-icon\">&#x1006;</i></span>'}}</div>"}
         ,{field: 'info',title:'重复', width:150 ,event:'repeat', templet:"<div>{{ d.info.num == 0 ? '<span class='tips'>0</span>' : '<span class='tips link'>'+d.info.num+'</span>' }}</div>"}
     ]];
 

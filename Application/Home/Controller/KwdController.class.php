@@ -33,12 +33,12 @@ class KwdController extends CommonController {
         return $res;
     }
     public function _initialize(){
-        session_write_close();
+        session('[pause]');
     }
     public function index(){
         $this->display();
     }
-
+    public $errMsg = ['0'=>'成功','10001'=>'出现验证码','10002'=>'连接超时','10003'=>'目标状态异常','10004'=>'(本地/代理)网络异常','10010'=>'未知异常'];
     public function history(){
         $this->display();
     }
@@ -115,17 +115,18 @@ class KwdController extends CommonController {
                 $result = $kwd->field('list',true)->where(array('pid'=>$pid))->order('lycos,id')->select();
                 $relation = C('PB_RELATION');
                 foreach($result as $k=>$v){
+                    $v['msg'] = $this->errMsg[$v['state']];
                     $arr[$relation[$v['lycos']]][] = $v;
-                    unset($arr['lycos']);
                 }
                 break;
             case 2 :
                 $pid = $keyword->where(['pid'=>$coverData['id']])->field('id,conditions')->select();
                 $relation = C('PB_RELATION');
-                foreach($pid as $v){
-                    $res = $kwd->field('list',true)->where(array('pid'=>$v['id']))->order('lycos,id')->select();
-                    foreach($res as $k=>&$val){
-                        $arr[$relation[$val['lycos']]][$v['conditions']][] = $val;
+                foreach($pid as $val){
+                    $res = $kwd->field('list',true)->where(array('pid'=>$val['id']))->order('lycos,id')->select();
+                    foreach($res as $k=>&$v){
+                        $v['msg'] = $this->errMsg[$v['state']];
+                        $arr[$relation[$v['lycos']]][$val['conditions']][] = $v;
                     }
                 }
                 ;break;
@@ -135,53 +136,67 @@ class KwdController extends CommonController {
         $this->display($temp);
     }
 
+/*
+ * 错误代码  10001   抓取页面出现验证码
+ * 错误代码  10002   响应时间超过60秒
+ * 错误代码  10003   目标网页错误的状态码
+ * 错误代码  10004   代理IP连接失败
+ */
 
-    public function getSource($abc=false,$nn = 0){
-        if(IS_POST){
-            $abc = I('post.');
+    public function getSource(){
+        if(!IS_POST){
+            $this->error('还有这种操作?');
         }
-
+        $abc = I('post.');
         $keywords = $abc['keywords'];$pid = $abc['pid'];$ip = $abc['ip'];$con_array = $abc['conditions'];$lycos = $abc['lycos'];
         Vendor('phpQuery.phpQuery');
         $return = ['state'=>200,'msg'=>null];
+        $urls = [];
         foreach($keywords as $v) {
             $urls[$v] = $this->getConf[$lycos]['searchUrl'] . $this->kwdMake($v, $lycos);
         }
-        $outputs = multiCurl($urls,array('http_code','cont','url'),$ip,getWait($lycos));
-        foreach($outputs['data'] as $k=>$output){
-            $total = 0;$order = array();$res = array();
-            if($output['http_code'] == 200){
-                \phpQuery::newDocumentHTML($output['cont']);
+        $outputs = Curls($urls,$ip,$lycos);
+        foreach($outputs as $k=>$output){
+
+            $sql = ['pid' => $pid, 'lycos' => $lycos, 'word' => $k , 'list'=>'error' , 'ranknum'=>0 , 'rankcondition'=>''];
+
+            if(!empty($output['data'])) {
+                $total = 0;
+                $order = array();
+                $res = array();
+                \phpQuery::newDocumentHTML($output['data']['cont']);
                 $list = pq($this->getConf[$lycos]['totalClass']);
-                foreach($list as $key=>$val){
-                    $dom = pq($val);$row = array('id'=>$key+1);
-                    switch ($lycos){
+                foreach ($list as $key => $val) {
+                    $dom = pq($val);
+                    $row = array('id' => $key + 1);
+                    switch ($lycos) {
                         case 1:
                             $row['title'] = $dom->find('.t')->text();
-                            $row['url'] = getBaseDomain($dom->find('.g,.c-showurl')->text(),true)->domain;
+                            $row['url'] = getBaseDomain($dom->find('.g,.c-showurl')->text(), true)->domain;
                             break;
                         case 2:
                             $row['title'] = $dom->find('.c-title ')->text();
-                            $row['url'] = getBaseDomain(json_decode(str_replace('\'','"',$dom->attr('data-log')))->mu,true)->domain ;
+                            $row['url'] = getBaseDomain(json_decode(str_replace('\'', '"', $dom->attr('data-log')))->mu, true)->domain;
                             break;
                         case 3:
                             $row['title'] = $dom->find('.vrTitle,.vrt,.pt')->text();
-                            $row['url'] = getBaseDomain($dom->find('cite')->text(),true)->domain;
+                            $row['url'] = getBaseDomain($dom->find('cite')->text(), true)->domain;
                             break;
                         case 4:
                             $row['title'] = $dom->find('a')->text();
-                            $row['url'] = getBaseDomain($dom->find('.g,.other')->text(),true)->domain;
+                            $row['url'] = getBaseDomain($dom->find('.g,.other')->text(), true)->domain;
                             break;
                         case 5:
                             $row['title'] = $dom->find('.res-title,.title ')->text();
-                            $row['url'] = getBaseDomain($dom->find('cite,.url')->text(),true)->domain;
+                            $row['url'] = getBaseDomain($dom->find('cite,.url')->text(), true)->domain;
                             break;
-                        default : ;
+                        default :
+                            ;
                     }
-                    foreach($con_array as $vv){
-                        if($vv != '' || $vv != null || !empty($vv)){
-                            if(getBaseDomain($vv)->domain === getBaseDomain($row['url'])->domain){
-                                $row['mate_word'] .= $vv ;
+                    foreach ($con_array as $vv) {
+                        if ($vv != '' || $vv != null || !empty($vv)) {
+                            if (getBaseDomain($vv)->domain === getBaseDomain($row['url'])->domain) {
+                                $row['mate_word'] .= $vv;
                                 $order[] = $row['id'];
                                 $total++;
                             }
@@ -189,26 +204,31 @@ class KwdController extends CommonController {
                     }
                     $res[] = $row;
                 }
-                if(!empty($res)){
-                    $sql[] = array('pid'=>$pid,'lycos'=>$lycos,'word'=>$k,'ranknum'=>$total,'list'=>json_encode($res),'rankcondition'=>implode(",",$order));
-                }else{
-                    file_put_contents('d:/file_put/'.$lycos.'-empty'.$lycos.rand().rand().".txt",$output['url']."\n".$output['cont']);
+                if (empty($res)) {
+                    $sql['state'] = 10001;
+                } else {
+                    $sql['ranknum'] = $total;
+                    $sql['list'] = json_encode($res);
+                    $sql['rankcondition'] = implode(",", $order);
+                    $sql['state'] = 0;
                 }
             }else{
-                continue;
+                if($output['error']['type'] == -200){
+                    $sql['state'] = 10003;
+                }else if($output['error']['type'] == -404){
+                    switch($output['error']['state']){
+                        case 28:$sql['state'] = 10002;break;
+                        case 56:$sql['state'] = 10004;break;
+                        default : $sql['state'] = 10010 ;
+                    }
+                }else{
+                    $sql['state'] = 10010;
+                }
             }
+            $query[] = $sql;
         }
-        if(empty($sql)){
-            if($nn<5){
-                return $this->getSource($abc,++$nn);
-            }else{
-                $relation = C('PB_RELATION');
-                $return['state'] = -2;
-                $return['msg'] = "【".$relation[$lycos]."】数据为空";
-            }
-        }else if(!M('Keylist')->addAll($sql)) {
-            $return['state'] = -2;
-            $return['msg'] = "莫名其妙的操作?";
+        if(!empty($query)){
+            M('Keylist')->addAll($query);
         }
         $this->ajaxReturn($return);
     }
@@ -218,31 +238,13 @@ class KwdController extends CommonController {
         if(!IS_POST){
             $this->error('还有这种操作?');
         }
-/*        $result = [];
-        $ch = curl_init();
-        curl_setopt($ch,CURLOPT_URL,'http://www.xdaili.cn/ipagent/privateProxy/getDynamicIP/DD201772417590gBXNa/71ec7139fcdd11e6942200163e1a31c0?returnType=2');
-        curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
-        curl_setopt($ch,CURLOPT_HEADER,0);
-        curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,false);
-        curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,false);
-        $output = curl_exec($ch);
-        curl_close($ch);
-        $res = json_decode($output,true);
-        if($res["ERRORCODE"] == 0){
-            $ip = $res['RESULT']['wanIp'].":".$res['RESULT']['proxyport'];
-            $testRes = testIp($ip);
-            if($testRes['code'] == 200){
-                $result['data'] = $ip;
-                $result['code'] = 200;
-            }else{
-                sleep(10);
-                return $this->getIp();
-            }
-        }else{
-            $result['code'] = $res["ERRORCODE"];
-        }*/
-        sleep(rand(5,10));
-        $this->ajaxReturn(['code'=>200,'data'=>'175.25.184.247:23128']);
+        $return['code'] = 0;
+        if(I('post.use')){
+            $return['data'] = '113.209.100.170:23128';
+        }
+
+        sleep(0);
+        $this->ajaxReturn($return);
     }
     public function Condition(){
         if(!IS_POST){

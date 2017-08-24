@@ -41,7 +41,7 @@
                         <volist name="vo" id="v" key="key" >
                             <tr>
                                 <td>{$key}</td>
-                                <td class="info" style="cursor: pointer" data-id="{$v.id}">{$v[word]}</td>
+                                <td><span class="tips {$v['state'] == 0 ? 'link':'error'}" data-err="{$v['msg']}" data-id="{$v.id}">{$v[word]}</span></td>
                                 <td>{$v[ranknum]}</td>
                                 <td>{$v[rankcondition]}</td>
                             </tr>
@@ -59,7 +59,7 @@
 <script>
     layui.use(['element','layer'],function(){
         var element = layui.element,layer = layui.layer;
-        $('.info').on('click',function(){
+        $('.link').on('click',function(){
             var _this = $(this);
             layer.open({
                 area:['1160px','80%'],
@@ -70,6 +70,10 @@
                 title:"详细信息",
                 scrollbar:false
             });
+        });
+
+        $('.error').on('click',function(){
+            layer.msg($(this).data('err'));
         })
     })
 </script>

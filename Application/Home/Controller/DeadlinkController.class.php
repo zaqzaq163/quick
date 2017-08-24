@@ -8,26 +8,29 @@ class DeadlinkController extends CommonController {
 
     public function _initialize()
     {
-        vendor('phpQuery.phpQuery');
+        session('[pause]');
         parent::_initialize();
     }
 
     public function startDead(){
-        set_time_limit(0);
+        if(!IS_POST){
+            $this->error('还有这种操作?');
+        }
+        vendor('phpQuery.phpQuery');
         $info = I('post.');
         $return = ['state'=>200,'msg'=>'','data'=>null];
         $wrl = preg_match('/^http/', $info['link']) ? $info['link'] : $info['type'].$info['link'];
-        $html = myCurl($wrl);
-        $curl = parse_url($html['url']);
+        $html = Curl($wrl);
+        $curl = parse_url($html['info']['url']);
         $link = M('link');
 
-        if($html['state'] == 200){
-            $pid = $link->add(array('time'=>time(),'url'=>$html['url']));
+        if($html['code'] == 0){
+            $pid = $link->add(array('time'=>time(),'url'=>$html['info']['url']));
             if(empty($pid)){
                 $return['state'] = -1;
                 $return['msg'] = '初始化检测失败';
             }else {
-                \phpQuery::newDocumentHTML($html['cont']);
+                \phpQuery::newDocumentHTML($html['data']['cont']);
                 $list = pq('a[href]');
                 $x = [];
                 $res = [];
@@ -109,48 +112,53 @@ class DeadlinkController extends CommonController {
 
                 $curAry = array_chunk($x, 50, true);
                 foreach ($curAry as $k => $v) {
-                    $result = multiCurl($v, array('url', 'http_code'), false, 0);
+                    $result = multiCurl($v);
                     foreach ($result['data'] as $z => $y) {
-                        if ($y['http_code'] == 0) {
-                            $error[$z] = $y['url'];
-                        } else {
-                            $res[$z]['state'] = $y['http_code'];
+                        if ($y['code'] == 0) {
+                            $res[$z]['state'] = -1;
+                        }else{
+                            $error[$z] = $y['info']['url'];
                         }
                     }
                     if (!empty($error)) {
-                        $errRes = multiCurl($error, array('url', 'http_code'), false, 0);
+                        $errRes = multiCurl($error);
                         foreach ($errRes['data'] as $z => $y) {
-                            $res[$z]['state'] = $y['http_code'];
+                            if ($y['code'] == 0) {
+                                $res[$z]['state'] = -1;
+                            }else{
+                                $res[$z]['state'] = $y['info']['http_code'];
+                            }
                         }
                     }
                 }
 
-                $sql = $res;
-
-                foreach ($sql as $k => &$v) {
+                foreach ($res as $k => &$v) {
                     $v['pid'] = $pid;
                     $v['info'] = json_encode($v['repeat']);
                     unset($v['repeat']);
                 }
-
                 if (empty($res)) {
                     $return['state'] = -2;
                     $return['msg'] = '该地址内无可用链接';
                 } else {
                     $linkList = M('linklist');
-                    if ($linkList->addAll($sql)) {
+                    if ($linkList->addAll($res)) {
                         $return['data'] = $pid;
-                        $return['url'] = U('Export/DeadLink') . "?pid=$pid";
+                        $return['url'] = U('Export/DeadLink')."?pid=$pid";
                     } else {
                         $return['state'] = -3;
                         $return['msg'] = '检测结果储存数据库失败';
-                        $return['data'] = $res;
                     }
                 }
             }
         }else{
-            $return['state'] = $html['state'];
-            $return['msg'] = '入口链接存在错误,错误代码为'.$html['state'];
+            if($html['code'] == -200){
+                $return['state'] = -200;
+                $return['msg'] = '入口链接存在错误：'.$html['msg'];
+            }else if($html['code'] == -404){
+                $return['state'] = -404;
+                $return['msg'] = '数据抓错取误,错误信息为：'.$html['msg'];
+            }
         }
         $this->ajaxReturn($return);
     }
@@ -223,10 +231,4 @@ class DeadlinkController extends CommonController {
         $return = ['code'=>0,'data'=>$result,'count'=>$links->where(['pid'=>I('get.id')])->count()];
         $this->ajaxReturn($return);
     }
-
-    public function del(){
-
-    }
-
-
 }

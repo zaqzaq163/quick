@@ -150,10 +150,8 @@
     display: none;
 }
 .hidden{
-    padding: 8px;
-}
-.hidden .layui-form-item{
-    margin-bottom:0;
+    display: none   ;
+    margin-top:15px;
 }
 
 #export{
@@ -188,4 +186,11 @@
 }
 .layui-table.repeatTable tbody tr:hover{
     color:#000;
+}
+
+#Advanced{
+    display: none;
+}
+.temp.layui-layer-wrap{
+    padding: 8px;
 }

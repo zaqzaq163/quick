@@ -1,1 +1,42 @@
- 
+<script>(function () {
+    function h(a, b) {
+        return Math.floor(Math.random() * (b - a) + a)
+    }
+
+    function k() {
+        var a = Math.random().toString(36).substr(2, 6);
+        return d[a] ? k() : a
+    }
+
+    function f(a, b) {
+        var c = new Image, d = getDomain();
+        c.src = location.protocol + "//pb.sogou.com/pv.gif?uigs_productid=webapp&type=antispider&subtype=" + a + "&domain=" + d + "&suv=" + getCookie("SUV") + "&snuid=" + getCookie("SNUID") + "&t=" + (new Date).getTime() + (b ? "&" + b : "")
+    }
+
+    var n = decodeURIComponent('%2Fweb%3Fquery%3D%E7%83%A4%E8%82%89%E6%8B%8C%E9%A5%AD%E5%88%A9%E6%B6%A6'),
+        l = new Date(1503394669000), e = parseInt(getCookie("ABTEST")[0]), g = getCookie("SUID"),
+        p = navigator.userAgent, m = h(e, g.length), d = {sn: g.substring(e, m + 1)};
+    (function (a) {
+        if (-2 < p.indexOf("MSIE")) {
+            var b = l.getHours(), c = d.sn, c = c + a[b];
+            d.sn = c
+        }
+    })(g);
+    for (e = 1; e < m; e++) d[k()] = h(0, l.getSeconds());
+    $.ajax({
+        url: "detect.php", type: "GET", cache: !1, data: d, dataType: "json", success: function (a) {
+            if (0 !== a.code) setTimeout(function () {
+                location.href += "&verify=0"
+            }, 50), f("verify_page", "faile"); else {
+                f("verify_page", "success");
+                var b = new Date, c = "sogou.com";
+                "snapshot.sogoucdn.com" == location.hostname && (c = "snapshot.sogoucdn.com");
+                getCookie("SNUID") || (b.setTime(b.getTime() + 31536E6), setCookie("SNUID", a.id, b.toGMTString(), c, "/"));
+                setTimeout(function () {
+                    location.href = encodeURI(n)
+                }, 50)
+            }
+        }
+    });
+    f("verify_page", "pv")
+})();</script>
